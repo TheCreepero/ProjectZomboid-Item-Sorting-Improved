@@ -19,95 +19,83 @@ local strFind  = string.find
 -------------------------------------------------------------------------------
 -- Static Lookup Tables & Keyword Sets (Zero-Garbage Boot Allocation)
 -------------------------------------------------------------------------------
-local TAGS_DRUGS             = { "smoke", "tobacco", "smokable" }
-local WORDS_DRUGS            = { "cigarette", "cigar", "tobacco", "joint", "rollingpaper", "lighter", "matches" }
+local TAGS = {
+    DRUGS             = { "smoke", "tobacco", "smokable" },
+    MEDICAL           = { "medical", "firstaid", "bandage", "pill", "disinfectant" },
+    FARMING           = { "farming", "seed", "gardening", "farming_loot" },
+    COOK_ING          = { "minoringredient", "sugar", "salt", "flour", "yeast", "bakingfat", "bakingpowder" },
+    ALCOHOL           = { "alcohol", "beer", "wine", "liquor" },
+    DRINK             = { "drink", "water", "wetbeverageingredient" },
+    FUEL              = { "takefuel", "charcoal", "lighterfluid" },
+    WRITE             = { "write", "drawing" },
+    BOMB              = { "explosive", "bomb", "trap" },
+    BOW               = { "bow", "crossbow" },
+    TOOL              = { "tool", "hammer", "saw", "screwdriver", "wrench", "pipewrench", "sledgehammer", "shovel", "blowtorch", "weldingmask", "crowbar", "pliers", "scissors", "trowel", "chisel", "needle" },
+    AMMO              = { "ammo", "bullet", "shell" },
+    CLEAN             = { "bleach", "soap", "cleaning", "towel", "clean" },
+    BUILD_P           = { "paint", "wallpaper" },
+    CRAFT             = { "carpentry", "metalworking", "masonry", "tailoring", "crafting" },
+    MECH              = { "mechanic", "vehiclepart" },
+    ELEC              = { "electronics", "radio", "battery", "lightsource", "flashlight" },
+    FISHING           = { "fishing", "lure", "rod" },
+    TRAPPING          = { "trapping", "trap" },
+    CAMPING           = { "camping", "tent" },
+    COLLECT           = { "is_memento" },
+}
 
-local TAGS_MEDICAL           = { "medical", "firstaid", "bandage", "pill", "disinfectant" }
-local WORDS_MEDICAL          = { "bandage", "bandaid", "pill", "antibiotic", "painkiller", "antidepressant", "splint", "suture", "disinfectant", "scalpel" }
+local WORDS = {
+    DRUGS             = { "cigarette", "cigar", "tobacco", "joint", "rollingpaper", "lighter", "matches" },
+    MEDICAL           = { "bandage", "bandaid", "pill", "antibiotic", "painkiller", "antidepressant", "splint", "suture", "disinfectant", "scalpel" },
+    FARMING           = { "wateringcan", "fertilizer", "compost", "plantgrowth" },
+    COOK_ING          = { "flour", "sugar", "salt", "pepper", "oilolive", "oilvegetable", "vegetableoil", "oliveoil", "cookingoil", "vinegar", "yeast", "cornmeal", "bakingsoda", "cocoapowder", "marinara", "ketchup", "mustard", "mayonnaise", "syrup", "honey" },
+    DRINK             = { "water", "soda", "juice", "milk", "coffee", "tea", "beverage", "popcan" },
+    NOT_DRINK         = { "soup", "stew", "cereal", "oatmeal", "pasta", "chili", "chowder", "broth" },
+    FUEL              = { "propanetank", "charcoal", "firewood", "kindling", "lighterfluid", "coalbag" },
+    WRITE             = { "pencil", "penspiffo", "penfancy", "penmulticolor", "bluepen", "greenpen", "redpen", "notebook", "journal", "crayon", "eraser", "sheetpaper" },
+    BOMB              = { "pipebomb", "molotov", "grenade", "aerosolbomb", "smokebomb" },
+    BOW               = { "crossbow", "woodenbow", "compoundbow", "recurvebow" },
+    TOOL              = { "hammer", "saw", "screwdriver", "wrench", "pipewrench", "sledgehammer", "shovel", "blowtorch", "weldingmask", "crowbar", "pliers", "scissors", "trowel" },
+    AMMO              = { "bullets", "shells", "rounds", "cartridge", "ammo", "arrow", "bolt" },
+    MAGAZINE          = { "magazine", "clip", "drummag" },
+    MAGAZINE_EXCLUDE  = { "paperclip", "clipboard", "recipeclipping" },
+    BACKPACK          = { "backpack", "dufflebag", "hikingbag", "alice", "schoolbag" },
+    BAG               = { "fannypack", "satchel", "purse", "pouch" },
+    LIQUID_CONT       = { "bottle", "canteen", "flask", "bucket", "kettle", "gascan", "petrolcan", "dispenserbottle" },
+    CLEAN             = { "bleach", "soap", "mop", "dishcloth", "bathtowel", "sponge", "broom", "cleaningliquid" },
+    APPEAR            = { "makeup", "lipstick", "hairdye", "hairgel", "eyeshadow", "perfume", "cologne", "hairspray", "comb", "razor" },
+    BUILD_P           = { "paint", "wallpaper" },
+    BUILD             = { "brick", "gravelbag", "concrete", "plaster", "hinge", "doorknob", "anvil", "sandbag", "barbedwire", "cement" },
+    CRAFT             = { "nails", "screws", "ducttape", "glue", "thread", "wire", "metalsheet", "scrapmetal", "leatherstrip", "denimstrip", "sheetmetal", "twine", "rope", "woodglue", "superglue" },
+    MECH              = { "tire", "muffler", "carburetor", "carengine", "carbattery", "brakes", "suspension", "gaspump", "windshield" },
+    ELEC              = { "radio", "walkietalkie", "battery", "flashlight", "lamp", "lightbulb", "hamradio", "generator", "timer", "motiondetector" },
+    FISHING           = { "fishingrod", "fishingline", "fishinglure", "fishhook", "fishingtackle", "fishingnet" },
+    TRAPPING          = { "trap", "mousetrap", "cagetrap", "snaretrap" },
+    CAMPING           = { "tent", "sleepingbag", "campfire", "tentpeg" },
+    KEY               = { "key", "padlock", "combinationlock", "keyring" },
+    FURN              = { "chair", "table", "bed", "shelf", "sofa", "couch", "cabinet", "drawer", "desk", "wardrobe" },
+    MEDIA_A           = { "cassette", "vinyl", "cdrom", "compactdisc", "audiobook" },
+    MEDIA_V           = { "vhs", "videotape", "movie", "film" },
+    MEDIA_G           = { "boardgame", "chess", "checkers", "carddeck", "dice", "yoyo", "gameboy", "videogame" },
+    COLLECT           = { "money", "creditcard", "plush", "spiffo", "doll", "trophy", "wallet" },
+    COOK_UTENSIL      = { "fryingpan", "saucepan", "cookingpot", "roastingpan", "bakingpan", "skillet", "bowl", "rollingpin", "whisk", "grater", "kettle" },
+    JUNK              = { "empty", "tin", "canempty", "trash", "scrap", "debris", "dirt", "broken" },
+}
 
-local TAGS_FARMING           = { "farming", "seed", "gardening", "farming_loot" }
-local WORDS_FARMING          = { "wateringcan", "fertilizer", "compost", "plantgrowth" }
+local LOCS = {
+    HEAD              = { "hat", "mask", "eyes", "ears", "nose", "fullhat", "full_hat", "maskeyes", "mask_eyes", "maskfull", "mask_full", "eartop", "ear_top", "lefteye", "left_eye", "righteye", "right_eye" },
+    ARM               = { "hands", "handsleft", "handsright", "rightarm", "leftarm", "forearm_right", "forearm_left", "fore_arm_right", "fore_arm_left" },
+    FEET              = { "shoes", "socks", "calf_right", "calf_left", "gaiter_left", "gaiter_right" },
+    LEG               = { "pants", "shortpants", "short_pants", "shortsshort", "shorts_short", "legs1", "skirt", "longskirt", "long_skirt", "thigh_right", "thigh_left", "pantsextra", "pants_extra", "pants_skinny", "groin" },
+    UNDER             = { "underwear", "underwearbottom", "underwear_bottom", "underweartop", "underwear_top", "underwearextra1", "underwear_extra1", "underwearextra2", "underwear_extra2" },
+    JEW               = { "necklace", "necklace_long", "bellybutton", "right_middlefinger", "left_middlefinger", "right_middle_finger", "left_middle_finger", "right_ringfinger", "left_ringfinger", "right_ring_finger", "left_ring_finger", "rightwrist", "leftwrist", "right_wrist", "left_wrist", "ears_piercing" },
+    BACK              = { "back", "satchel" },
+    ACC               = { "belt", "holster", "ankleholster", "shoulder_holster", "beltextra", "scarf", "tie", "tail", "badge" },
+}
 
-local TAGS_COOK_ING          = { "minoringredient", "sugar", "salt", "flour", "yeast", "bakingfat", "bakingpowder" }
-local WORDS_COOK_ING         = { "flour", "sugar", "salt", "pepper", "oilolive", "oilvegetable", "vegetableoil", "oliveoil", "cookingoil", "vinegar", "yeast", "cornmeal", "bakingsoda", "cocoapowder", "marinara", "ketchup", "mustard", "mayonnaise", "syrup", "honey" }
-
-local TAGS_ALCOHOL           = { "alcohol", "beer", "wine", "liquor" }
-local TAGS_DRINK             = { "drink", "water", "wetbeverageingredient" }
-local WORDS_DRINK            = { "water", "soda", "juice", "milk", "coffee", "tea", "beverage", "popcan" }
-local WORDS_NOT_DRINK        = { "soup", "stew", "cereal", "oatmeal", "pasta", "chili", "chowder", "broth" }
-
-local TAGS_FUEL              = { "takefuel", "charcoal", "lighterfluid" }
-local WORDS_FUEL             = { "propanetank", "charcoal", "firewood", "kindling", "lighterfluid", "coalbag" }
-
-local TAGS_WRITE             = { "write", "drawing" }
-local WORDS_WRITE            = { "pencil", "penspiffo", "penfancy", "penmulticolor", "bluepen", "greenpen", "redpen", "notebook", "journal", "crayon", "eraser", "sheetpaper" }
-
-local TAGS_BOMB              = { "explosive", "bomb", "trap" }
-local WORDS_BOMB             = { "pipebomb", "molotov", "grenade", "aerosolbomb", "smokebomb" }
-
-local TAGS_BOW               = { "bow", "crossbow" }
-local WORDS_BOW              = { "crossbow", "woodenbow", "compoundbow", "recurvebow" }
-
-local TAGS_TOOL              = { "tool", "hammer", "saw", "screwdriver", "wrench", "pipewrench", "sledgehammer", "shovel", "blowtorch", "weldingmask", "crowbar", "pliers", "scissors", "trowel", "chisel", "needle" }
-local WORDS_TOOL             = { "hammer", "saw", "screwdriver", "wrench", "pipewrench", "sledgehammer", "shovel", "blowtorch", "weldingmask", "crowbar", "pliers", "scissors", "trowel" }
-
-local TAGS_AMMO              = { "ammo", "bullet", "shell" }
-local WORDS_AMMO             = { "bullets", "shells", "rounds", "cartridge", "ammo", "arrow", "bolt" }
-local WORDS_MAGAZINE         = { "magazine", "clip", "drummag" }
-local WORDS_MAGAZINE_EXCLUDE = { "paperclip", "clipboard", "recipeclipping" }
-
-local LOCS_HEAD              = { "hat", "mask", "eyes", "ears", "nose", "fullhat", "full_hat", "maskeyes", "mask_eyes", "maskfull", "mask_full", "eartop", "ear_top", "lefteye", "left_eye", "righteye", "right_eye" }
-local LOCS_ARM               = { "hands", "handsleft", "handsright", "rightarm", "leftarm", "forearm_right", "forearm_left", "fore_arm_right", "fore_arm_left" }
-local LOCS_FEET              = { "shoes", "socks", "calf_right", "calf_left", "gaiter_left", "gaiter_right" }
-local LOCS_LEG               = { "pants", "shortpants", "short_pants", "shortsshort", "shorts_short", "legs1", "skirt", "longskirt", "long_skirt", "thigh_right", "thigh_left", "pantsextra", "pants_extra", "pants_skinny", "groin" }
-local LOCS_UNDER             = { "underwear", "underwearbottom", "underwear_bottom", "underweartop", "underwear_top", "underwearextra1", "underwear_extra1", "underwearextra2", "underwear_extra2" }
-local LOCS_JEW               = { "necklace", "necklace_long", "bellybutton", "right_middlefinger", "left_middlefinger", "right_middle_finger", "left_middle_finger", "right_ringfinger", "left_ringfinger", "right_ring_finger", "left_ring_finger", "rightwrist", "leftwrist", "right_wrist", "left_wrist", "ears_piercing" }
-local LOCS_BACK              = { "back", "satchel" }
-local LOCS_ACC               = { "belt", "holster", "ankleholster", "shoulder_holster", "beltextra", "scarf", "tie", "tail", "badge" }
-
-local WORDS_BACKPACK         = { "backpack", "dufflebag", "hikingbag", "alice", "schoolbag" }
-local WORDS_BAG              = { "fannypack", "satchel", "purse", "pouch" }
-local WORDS_LIQUID_CONT      = { "bottle", "canteen", "flask", "bucket", "kettle", "gascan", "petrolcan", "dispenserbottle" }
-
-local TAGS_CLEAN             = { "bleach", "soap", "cleaning", "towel", "clean" }
-local WORDS_CLEAN            = { "bleach", "soap", "mop", "dishcloth", "bathtowel", "sponge", "broom", "cleaningliquid" }
-
-local WORDS_APPEAR           = { "makeup", "lipstick", "hairdye", "hairgel", "eyeshadow", "perfume", "cologne", "hairspray", "comb", "razor" }
-
-local TAGS_BUILD_P           = { "paint", "wallpaper" }
-local WORDS_BUILD_P          = { "paint", "wallpaper" }
-local WORDS_BUILD            = { "brick", "gravelbag", "concrete", "plaster", "hinge", "doorknob", "anvil", "sandbag", "barbedwire", "cement" }
-
-local TAGS_CRAFT             = { "carpentry", "metalworking", "masonry", "tailoring", "crafting" }
-local WORDS_CRAFT            = { "nails", "screws", "ducttape", "glue", "thread", "wire", "metalsheet", "scrapmetal", "leatherstrip", "denimstrip", "sheetmetal", "twine", "rope", "woodglue", "superglue" }
-
-local TAGS_MECH              = { "mechanic", "vehiclepart" }
-local WORDS_MECH             = { "tire", "muffler", "carburetor", "carengine", "carbattery", "brakes", "suspension", "gaspump", "windshield" }
-
-local TAGS_ELEC              = { "electronics", "radio", "battery", "lightsource", "flashlight" }
-local WORDS_ELEC             = { "radio", "walkietalkie", "battery", "flashlight", "lamp", "lightbulb", "hamradio", "generator", "timer", "motiondetector" }
-
-local TAGS_FISHING           = { "fishing", "lure", "rod" }
-local WORDS_FISHING          = { "fishingrod", "fishingline", "fishinglure", "fishhook", "fishingtackle", "fishingnet" }
-
-local TAGS_TRAPPING          = { "trapping", "trap" }
-local WORDS_TRAPPING         = { "trap", "mousetrap", "cagetrap", "snaretrap" }
-
-local TAGS_CAMPING           = { "camping", "tent" }
-local WORDS_CAMPING          = { "tent", "sleepingbag", "campfire", "tentpeg" }
-
-local WORDS_KEY              = { "key", "padlock", "combinationlock", "keyring" }
-local WORDS_FURN             = { "chair", "table", "bed", "shelf", "sofa", "couch", "cabinet", "drawer", "desk", "wardrobe" }
-
-local WORDS_MEDIA_A          = { "cassette", "vinyl", "cdrom", "compactdisc", "audiobook" }
-local WORDS_MEDIA_V          = { "vhs", "videotape", "movie", "film" }
-local WORDS_MEDIA_G          = { "boardgame", "chess", "checkers", "carddeck", "dice", "yoyo", "gameboy", "videogame" }
-
-local TAGS_COLLECT           = { "is_memento" }
-local WORDS_COLLECT          = { "money", "creditcard", "plush", "spiffo", "doll", "trophy", "wallet" }
-
-local WORDS_COOK_UTENSIL     = { "fryingpan", "saucepan", "cookingpot", "roastingpan", "bakingpan", "skillet", "bowl", "rollingpin", "whisk", "grater", "kettle" }
-local WORDS_JUNK             = { "empty", "tin", "canempty", "trash", "scrap", "debris", "dirt", "broken" }
+-- Expose to global table for modder extensibility
+ItemSortingImproved.TAGS  = TAGS
+ItemSortingImproved.WORDS = WORDS
+ItemSortingImproved.LOCS  = LOCS
 
 -------------------------------------------------------------------------------
 -- Helper Functions
@@ -229,40 +217,40 @@ function ItemSortingImproved.CategorizeItem(item)
     -- Tier 2: Classification by Functional Priority
     
     -- 1. DRUGS & TOBACCO (Evaluated before generic Food to intercept cigars/cigarettes/tobacco)
-    if hasAnyTag(itemTags, TAGS_DRUGS) or containsAny(nameLower, WORDS_DRUGS) then
+    if hasAnyTag(itemTags, TAGS.DRUGS) or containsAny(nameLower, WORDS.DRUGS) then
         return ItemSortingImproved.Categories.Drugs
     end
     
     -- 2. MEDICAL & FIRST AID (Evaluated before Food to intercept medicinal herbs & ingestible medicine)
     if dispCat == "FirstAid" or dispCat == "FirstAidWeapon" or dispCat == "Bandage" or 
-       hasAnyTag(itemTags, TAGS_MEDICAL) or 
+       hasAnyTag(itemTags, TAGS.MEDICAL) or 
        (item.isCanBandage and item:isCanBandage()) or 
-       containsAny(nameLower, WORDS_MEDICAL) then
+       containsAny(nameLower, WORDS.MEDICAL) then
         return ItemSortingImproved.Categories.Med
     end
     
     -- 3. FARMING & SEEDS (Evaluated before Literature & Food to intercept seed packets)
     if dispCat == "Gardening" or dispCat == "GardeningWeapon" or 
-       hasAnyTag(itemTags, TAGS_FARMING) or 
+       hasAnyTag(itemTags, TAGS.FARMING) or 
        strFind(nameLower, "seed", 1, true) or 
-       containsAny(nameLower, WORDS_FARMING) then
+       containsAny(nameLower, WORDS.FARMING) then
         return ItemSortingImproved.Categories.SurFarm
     end
     
     -- 4. COOKING INGREDIENTS (Evaluated before generic Food to intercept spices, flour, sugar, oils)
-    if hasAnyTag(itemTags, TAGS_COOK_ING) or containsAny(nameLower, WORDS_COOK_ING) then
+    if hasAnyTag(itemTags, TAGS.COOK_ING) or containsAny(nameLower, WORDS.COOK_ING) then
         return ItemSortingImproved.Categories.CookIng
     end
     
     -- 5. FOOD & DRINK
     if typeStr == "food" or dispCat == "Food" then
-        if (item.isAlcoholic and item:isAlcoholic()) or hasAnyTag(itemTags, TAGS_ALCOHOL) then
+        if (item.isAlcoholic and item:isAlcoholic()) or hasAnyTag(itemTags, TAGS.ALCOHOL) then
             return ItemSortingImproved.Categories.FoodA
         end
-        local isSoupOrMeal = containsAny(nameLower, WORDS_NOT_DRINK)
+        local isSoupOrMeal = containsAny(nameLower, WORDS.NOT_DRINK)
         if not isSoupOrMeal then
             if (item.canStoreWater == true) or (item.getCanStoreWater and item:getCanStoreWater()) or dispCat == "Water" or 
-               hasAnyTag(itemTags, TAGS_DRINK) or containsAny(nameLower, WORDS_DRINK) then
+               hasAnyTag(itemTags, TAGS.DRINK) or containsAny(nameLower, WORDS.DRINK) then
                 return ItemSortingImproved.Categories.FoodB
             end
         end
@@ -279,7 +267,7 @@ function ItemSortingImproved.CategorizeItem(item)
     end
     
     -- 6. FUEL & COMBUSTION (Evaluated before Crafting & Weapons to intercept charcoal, firewood, propane tanks)
-    if (hasAnyTag(itemTags, TAGS_FUEL) or containsAny(nameLower, WORDS_FUEL)) and not strFind(nameLower, "nails", 1, true) then
+    if (hasAnyTag(itemTags, TAGS.FUEL) or containsAny(nameLower, WORDS.FUEL)) and not strFind(nameLower, "nails", 1, true) then
         return ItemSortingImproved.Categories.Fuel
     end
     
@@ -296,8 +284,8 @@ function ItemSortingImproved.CategorizeItem(item)
         if dispCat == "Cartography" or strFind(nameLower, "map", 1, true) then
             return ItemSortingImproved.Categories.LitC
         end
-        if (item.canBeWrite == true) or (item.canWrite and item:canWrite()) or hasAnyTag(itemTags, TAGS_WRITE) or 
-           containsAny(nameLower, WORDS_WRITE) or nameLower == "pen" then
+        if (item.canBeWrite == true) or (item.canWrite and item:canWrite()) or hasAnyTag(itemTags, TAGS.WRITE) or 
+           containsAny(nameLower, WORDS.WRITE) or nameLower == "pen" then
             return ItemSortingImproved.Categories.LitW
         end
         return ItemSortingImproved.Categories.LitE
@@ -309,11 +297,11 @@ function ItemSortingImproved.CategorizeItem(item)
     
     -- 8. WEAPONS, AMMO & EXPLOSIVES
     if typeStr == "weapon" then
-        if dispCat == "Explosives" or dispCat == "Devices" or hasAnyTag(itemTags, TAGS_BOMB) or 
-           containsAny(nameLower, WORDS_BOMB) then
+        if dispCat == "Explosives" or dispCat == "Devices" or hasAnyTag(itemTags, TAGS.BOMB) or 
+           containsAny(nameLower, WORDS.BOMB) then
             return ItemSortingImproved.Categories.WepBomb
         end
-        if hasAnyTag(itemTags, TAGS_BOW) or containsAny(nameLower, WORDS_BOW) or nameLower == "bow" then
+        if hasAnyTag(itemTags, TAGS.BOW) or containsAny(nameLower, WORDS.BOW) or nameLower == "bow" then
             return ItemSortingImproved.Categories.WepBow
         end
         local isAimed = (item.isAimedFirearm == true) or (type(item.isAimedFirearm) == "function" and item:isAimedFirearm())
@@ -323,13 +311,13 @@ function ItemSortingImproved.CategorizeItem(item)
             return ItemSortingImproved.Categories.WepFire
         end
         -- Improvised tools and survival gear functioning as weapons
-        if dispCat == "Fishing" or dispCat == "FishingWeapon" or hasAnyTag(itemTags, TAGS_FISHING) or strFind(nameLower, "fishingrod", 1, true) then
+        if dispCat == "Fishing" or dispCat == "FishingWeapon" or hasAnyTag(itemTags, TAGS.FISHING) or strFind(nameLower, "fishingrod", 1, true) then
             return ItemSortingImproved.Categories.SurFish
         end
-        if dispCat == "Gardening" or dispCat == "GardeningWeapon" or hasAnyTag(itemTags, TAGS_FARMING) then
+        if dispCat == "Gardening" or dispCat == "GardeningWeapon" or hasAnyTag(itemTags, TAGS.FARMING) then
             return ItemSortingImproved.Categories.SurFarm
         end
-        if dispCat == "Tool" or dispCat == "ToolWeapon" or hasAnyTag(itemTags, TAGS_TOOL) then
+        if dispCat == "Tool" or dispCat == "ToolWeapon" or hasAnyTag(itemTags, TAGS.TOOL) then
             return ItemSortingImproved.Categories.Tool
         end
         return ItemSortingImproved.Categories.WepMelee
@@ -339,41 +327,41 @@ function ItemSortingImproved.CategorizeItem(item)
         return ItemSortingImproved.Categories.WepPart
     end
     
-    if dispCat == "Ammo" or hasAnyTag(itemTags, TAGS_AMMO) or containsAny(nameLower, WORDS_AMMO) then
-        if containsAny(nameLower, WORDS_MAGAZINE) and not containsAny(nameLower, WORDS_MAGAZINE_EXCLUDE) then
+    if dispCat == "Ammo" or hasAnyTag(itemTags, TAGS.AMMO) or containsAny(nameLower, WORDS.AMMO) then
+        if containsAny(nameLower, WORDS.MAGAZINE) and not containsAny(nameLower, WORDS.MAGAZINE_EXCLUDE) then
             return ItemSortingImproved.Categories.WepAmmoMag
         end
         return ItemSortingImproved.Categories.WepAmmo
     end
     
-    if containsAny(nameLower, WORDS_MAGAZINE) and not containsAny(nameLower, WORDS_MAGAZINE_EXCLUDE) and typeStr ~= "literature" then
+    if containsAny(nameLower, WORDS.MAGAZINE) and not containsAny(nameLower, WORDS.MAGAZINE_EXCLUDE) and typeStr ~= "literature" then
         return ItemSortingImproved.Categories.WepAmmoMag
     end
     
     -- 9. CLOTHING & WEARABLES (Grouped by Body Location)
     if typeStr == "clothing" or typeStr == "alarm_clock_clothing" or typeStr == "alarmclockclothing" or #bodyLoc > 0 then
-        if containsAny(bodyLoc, LOCS_HEAD) then
+        if containsAny(bodyLoc, LOCS.HEAD) then
             return ItemSortingImproved.Categories.ClothHead
         end
-        if containsAny(bodyLoc, LOCS_ARM) then
+        if containsAny(bodyLoc, LOCS.ARM) then
             return ItemSortingImproved.Categories.ClothArm
         end
-        if containsAny(bodyLoc, LOCS_FEET) then
+        if containsAny(bodyLoc, LOCS.FEET) then
             return ItemSortingImproved.Categories.ClothFeet
         end
-        if containsAny(bodyLoc, LOCS_LEG) then
+        if containsAny(bodyLoc, LOCS.LEG) then
             return ItemSortingImproved.Categories.ClothLeg
         end
-        if containsAny(bodyLoc, LOCS_UNDER) then
+        if containsAny(bodyLoc, LOCS.UNDER) then
             return ItemSortingImproved.Categories.ClothUnder
         end
-        if containsAny(bodyLoc, LOCS_JEW) then
+        if containsAny(bodyLoc, LOCS.JEW) then
             return ItemSortingImproved.Categories.ClothJew
         end
-        if containsAny(bodyLoc, LOCS_BACK) or hasAnyTag(itemTags, {"backpack"}) or (strFind(nameLower, "bag", 1, true) and canEquip == "back") then
+        if containsAny(bodyLoc, LOCS.BACK) or hasAnyTag(itemTags, {"backpack"}) or (strFind(nameLower, "bag", 1, true) and canEquip == "back") then
             return ItemSortingImproved.Categories.ClothBack
         end
-        if containsAny(bodyLoc, LOCS_ACC) then
+        if containsAny(bodyLoc, LOCS.ACC) then
             return ItemSortingImproved.Categories.ClothAcc
         end
         return ItemSortingImproved.Categories.ClothBody
@@ -383,103 +371,103 @@ function ItemSortingImproved.CategorizeItem(item)
     local isFluidCont = (ComponentType and ComponentType.FluidContainer and item.containsComponent and item:containsComponent(ComponentType.FluidContainer)) or
                         (item.isFluidContainer and item:isFluidContainer()) or (dispCat == "WaterContainer")
     if typeStr == "container" or dispCat == "WaterContainer" or dispCat == "Container" or isFluidCont or containsAny(nameLower, {"gascan", "petrolcan"}) then
-        if strFind(canEquip, "back", 1, true) or containsAny(nameLower, WORDS_BACKPACK) then
+        if strFind(canEquip, "back", 1, true) or containsAny(nameLower, WORDS.BACKPACK) then
             return ItemSortingImproved.Categories.ClothBack
         end
-        if containsAny(canEquip, {"belt", "fannypack"}) or containsAny(nameLower, WORDS_BAG) then
+        if containsAny(canEquip, {"belt", "fannypack"}) or containsAny(nameLower, WORDS.BAG) then
             return ItemSortingImproved.Categories.ClothBag
         end
         if (item.canStoreWater == true) or (item.getCanStoreWater and item:getCanStoreWater()) or dispCat == "WaterContainer" or dispCat == "Water" or 
-           isFluidCont or containsAny(nameLower, WORDS_LIQUID_CONT) then
+           isFluidCont or containsAny(nameLower, WORDS.LIQUID_CONT) then
             return ItemSortingImproved.Categories.ContL
         end
         return ItemSortingImproved.Categories.Cont
     end
     
     -- 11. CLEANING SUPPLIES
-    if hasAnyTag(itemTags, TAGS_CLEAN) or containsAny(nameLower, WORDS_CLEAN) then
+    if hasAnyTag(itemTags, TAGS.CLEAN) or containsAny(nameLower, WORDS.CLEAN) then
         return ItemSortingImproved.Categories.Clean
     end
     
     -- 12. APPEARANCE & COSMETICS
-    if dispCat == "Appearance" or (item.makeUpType and #item.makeUpType > 0) or containsAny(nameLower, WORDS_APPEAR) then
+    if dispCat == "Appearance" or (item.makeUpType and #item.makeUpType > 0) or containsAny(nameLower, WORDS.APPEAR) then
         return ItemSortingImproved.Categories.Appear
     end
     
     -- 13. TOOLS
-    if dispCat == "Tool" or dispCat == "ToolWeapon" or hasAnyTag(itemTags, TAGS_TOOL) or containsAny(nameLower, WORDS_TOOL) then
+    if dispCat == "Tool" or dispCat == "ToolWeapon" or hasAnyTag(itemTags, TAGS.TOOL) or containsAny(nameLower, WORDS.TOOL) then
         return ItemSortingImproved.Categories.Tool
     end
     
     -- 14. BUILDING & CONSTRUCTION
-    if dispCat == "Paint" or hasAnyTag(itemTags, TAGS_BUILD_P) or containsAny(nameLower, WORDS_BUILD_P) then
+    if dispCat == "Paint" or hasAnyTag(itemTags, TAGS.BUILD_P) or containsAny(nameLower, WORDS.BUILD_P) then
         return ItemSortingImproved.Categories.BuildP
     end
     if nameLower == "log" or strFind(nameLower, "logstacks", 1, true) or strFind(nameLower, "treelog", 1, true) or strFind(nameLower, "woodenlog", 1, true) or 
-       containsAny(nameLower, WORDS_BUILD) then
+       containsAny(nameLower, WORDS.BUILD) then
         return ItemSortingImproved.Categories.Build
     end
     
     -- 15. CRAFTING MATERIALS
-    if dispCat == "Material" or dispCat == "RecipeResource" or hasAnyTag(itemTags, TAGS_CRAFT) or containsAny(nameLower, WORDS_CRAFT) then
+    if dispCat == "Material" or dispCat == "RecipeResource" or hasAnyTag(itemTags, TAGS.CRAFT) or containsAny(nameLower, WORDS.CRAFT) then
         return ItemSortingImproved.Categories.Craft
     end
     
     -- 16. MECHANICS & VEHICLES (Evaluated before Electronics so car batteries belong to Mech)
-    if dispCat == "VehicleMaintenance" or dispCat == "VehicleMaintenanceWeapon" or hasAnyTag(itemTags, TAGS_MECH) or containsAny(nameLower, WORDS_MECH) then
+    if dispCat == "VehicleMaintenance" or dispCat == "VehicleMaintenanceWeapon" or hasAnyTag(itemTags, TAGS.MECH) or containsAny(nameLower, WORDS.MECH) then
         return ItemSortingImproved.Categories.Mech
     end
     
     -- 17. ELECTRONICS & COMMUNICATION
     if typeStr == "radio" or typeStr == "alarmclock" or typeStr == "alarm_clock" or dispCat == "Electronics" or dispCat == "Communications" or dispCat == "LightSource" or 
-       hasAnyTag(itemTags, TAGS_ELEC) or containsAny(nameLower, WORDS_ELEC) then
+       hasAnyTag(itemTags, TAGS.ELEC) or containsAny(nameLower, WORDS.ELEC) then
         return ItemSortingImproved.Categories.Elec
     end
     
     -- 18. SURVIVAL DISCIPLINES
-    if dispCat == "Fishing" or dispCat == "FishingWeapon" or hasAnyTag(itemTags, TAGS_FISHING) or containsAny(nameLower, WORDS_FISHING) then
+    if dispCat == "Fishing" or dispCat == "FishingWeapon" or hasAnyTag(itemTags, TAGS.FISHING) or containsAny(nameLower, WORDS.FISHING) then
         return ItemSortingImproved.Categories.SurFish
     end
-    if dispCat == "Trapping" or hasAnyTag(itemTags, TAGS_TRAPPING) or containsAny(nameLower, WORDS_TRAPPING) then
+    if dispCat == "Trapping" or hasAnyTag(itemTags, TAGS.TRAPPING) or containsAny(nameLower, WORDS.TRAPPING) then
         return ItemSortingImproved.Categories.SurTrap
     end
-    if dispCat == "Camping" or hasAnyTag(itemTags, TAGS_CAMPING) or containsAny(nameLower, WORDS_CAMPING) then
+    if dispCat == "Camping" or hasAnyTag(itemTags, TAGS.CAMPING) or containsAny(nameLower, WORDS.CAMPING) then
         return ItemSortingImproved.Categories.SurCamp
     end
     
     -- 19. KEYS & LOCKS
-    if typeStr == "key" or typeStr == "key_ring" or typeStr == "keyring" or containsAny(nameLower, WORDS_KEY) then
+    if typeStr == "key" or typeStr == "key_ring" or typeStr == "keyring" or containsAny(nameLower, WORDS.KEY) then
         return ItemSortingImproved.Categories.Key
     end
     
     -- 20. FURNITURE & MOVEABLES
-    if typeStr == "moveable" or dispCat == "Furniture" or containsAny(nameLower, WORDS_FURN) then
+    if typeStr == "moveable" or dispCat == "Furniture" or containsAny(nameLower, WORDS.FURN) then
         return ItemSortingImproved.Categories.Furn
     end
     
     -- 21. RECORDED MEDIA & ENTERTAINMENT
-    if containsAny(nameLower, WORDS_MEDIA_A) then
+    if containsAny(nameLower, WORDS.MEDIA_A) then
         return ItemSortingImproved.Categories.MediaA
     end
-    if containsAny(nameLower, WORDS_MEDIA_V) then
+    if containsAny(nameLower, WORDS.MEDIA_V) then
         return ItemSortingImproved.Categories.MediaV
     end
-    if containsAny(nameLower, WORDS_MEDIA_G) then
+    if containsAny(nameLower, WORDS.MEDIA_G) then
         return ItemSortingImproved.Categories.MediaG
     end
     
     -- 22. COLLECTABLES & VALUABLES
-    if dispCat == "Memento" or hasAnyTag(itemTags, TAGS_COLLECT) or containsAny(nameLower, WORDS_COLLECT) then
+    if dispCat == "Memento" or hasAnyTag(itemTags, TAGS.COLLECT) or containsAny(nameLower, WORDS.COLLECT) then
         return ItemSortingImproved.Categories.Collect
     end
     
     -- 23. COOKING UTENSILS
-    if dispCat == "Cooking" or containsAny(nameLower, WORDS_COOK_UTENSIL) or nameLower == "pan" or nameLower == "pot" then
+    if dispCat == "Cooking" or containsAny(nameLower, WORDS.COOK_UTENSIL) or nameLower == "pan" or nameLower == "pot" then
         return ItemSortingImproved.Categories.Cook
     end
     
     -- 24. JUNK & TRASH
-    if dispCat == "Junk" or containsAny(nameLower, WORDS_JUNK) then
+    if dispCat == "Junk" or containsAny(nameLower, WORDS.JUNK) then
         return ItemSortingImproved.Categories.Junk
     end
     
