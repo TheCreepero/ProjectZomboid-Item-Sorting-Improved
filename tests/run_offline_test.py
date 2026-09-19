@@ -13,6 +13,13 @@ from collections import Counter
 
 SCRIPTS_DIR = r"H:\SteamLibrary\steamapps\common\ProjectZomboid\media\scripts\generated\items"
 TRANSLATE_FILE = os.path.join(os.path.dirname(__file__), "..", "42", "media", "lua", "shared", "Translate", "EN", "IG_UI.json")
+README_FILE = os.path.join(os.path.dirname(__file__), "..", "README.md")
+
+try:
+    from test_readme_no_emojis import find_readme_emojis
+except ImportError:
+    from tests.test_readme_no_emojis import find_readme_emojis
+
 
 def load_valid_categories():
     with open(TRANSLATE_FILE, "r", encoding="utf-8") as f:
@@ -271,6 +278,11 @@ def main():
 
     valid_categories = load_valid_categories()
     print(f"[OK] Loaded {len(valid_categories)} valid categories from IG_UI.json")
+
+    # Documentation formatting assertion: Ensure zero emojis in README.md
+    emojis = find_readme_emojis(README_FILE)
+    assert len(emojis) == 0, f"Found {len(emojis)} emojis in README.md: {emojis}"
+    print("[PASS] Documentation check: README.md contains 0 emojis.")
 
     items = parse_items()
     print(f"[OK] Parsed {len(items)} items from vanilla PZ scripts")

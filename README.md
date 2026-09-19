@@ -11,7 +11,7 @@ It eliminates cluttered inventory panes and arbitrary vanilla categorization by 
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 - **Zero-Maintenance Mod Compatibility**: No hardcoded item lists to update. The classification engine evaluates item properties, tags, components, and attributes dynamically at runtime. Any weapon, tool, clothing item, food, or material added by any mod is automatically recognized and sorted.
 - **Alphabetical Prefix-Aligned Taxonomy**: Category names use consistent prefix groupings (e.g. `Cloth*`, `Food*`, `Lit*`, `Sur*`, `Wep*`), keeping related goods grouped together naturally when sorting inventory or containers by category.
@@ -23,7 +23,7 @@ It eliminates cluttered inventory panes and arbitrary vanilla categorization by 
 
 ---
 
-## 📂 Category Taxonomy
+## Category Taxonomy
 
 The mod reorganizes items into 54 structured categories:
 
@@ -86,7 +86,7 @@ The mod reorganizes items into 54 structured categories:
 
 ---
 
-## 🏗️ Architecture & Implementation
+## Architecture & Implementation
 
 ### File Structure
 ```
@@ -143,7 +143,7 @@ pz-auto-sort/
 
 ---
 
-## 🛠️ Adding Custom Overrides
+## Adding Custom Overrides
 
 If you are a modder creating custom items or a player wanting to customize your sorting, you can override any item's category without touching the core engine:
 
@@ -162,7 +162,7 @@ ItemSortingImproved.Overrides["Base.CustomJournal"]    = "LitW"
 
 ---
 
-## 🧪 Testing & Quality Assurance
+## Testing & Quality Assurance
 
 The mod includes an automated offline Python test suite that validates the classification logic against all **5,100+ vanilla Build 42 item definitions**:
 
@@ -177,7 +177,7 @@ python tests/run_offline_test.py
 
 ---
 
-## 📜 Installation
+## Installation
 
 ### For Players
 1. Subscribe to the mod on the Steam Workshop (or download the release and place the folder into `%UserProfile%\Zomboid\mods\`).
@@ -193,6 +193,7 @@ Mods=ItemSortingImproved
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) or source code headers for details.
+
