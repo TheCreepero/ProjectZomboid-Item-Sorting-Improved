@@ -9,6 +9,9 @@
 require("ItemSortingImproved_FluidCategories")
 
 local function hookTimedActions()
+    if ItemSortingImproved._hooksInstalled then return end
+    ItemSortingImproved._hooksInstalled = true
+
     -- 1. Fluid Empty Action
     if ISFluidEmptyAction then
         local original_complete = ISFluidEmptyAction.complete
