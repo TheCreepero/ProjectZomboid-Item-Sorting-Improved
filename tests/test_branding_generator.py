@@ -13,6 +13,7 @@ from generate_branding import (
     find_system_font,
     generate_icon,
     generate_poster,
+    generate_preview,
     parse_color,
     parse_mod_info,
     split_title_lines,
@@ -64,6 +65,19 @@ class TestMinimalBrandingGenerator(unittest.TestCase):
             height=64,
         )
         self.assertEqual(img.size, (64, 64))
+        self.assertEqual(img.mode, "RGBA")
+        pixels = img.load()
+        self.assertEqual(pixels[0, 0][:3], (0, 0, 0))
+
+    def test_generate_preview(self):
+        img = generate_preview(
+            title="Item Sorting Improved",
+            bg_color="#000000",
+            border_color="#FFFFFF",
+            text_color="#FFFFFF",
+            size=512,
+        )
+        self.assertEqual(img.size, (512, 512))
         self.assertEqual(img.mode, "RGBA")
         pixels = img.load()
         self.assertEqual(pixels[0, 0][:3], (0, 0, 0))

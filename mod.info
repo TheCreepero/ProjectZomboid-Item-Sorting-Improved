@@ -3,6 +3,7 @@ id=ItemSortingImproved
 description=Automatically organizes and categorizes all items (vanilla and modded) into clean, intuitive sorting categories.
 poster=poster.png
 versionMin=42.0
-author=Antigravity
+author=Konkursipe
+modversion=1.0.0
 icon=icon.png
 

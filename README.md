@@ -92,8 +92,12 @@ The mod reorganizes items into 54 structured categories:
 ```
 pz-auto-sort/
 ├── mod.info                                      # Mod metadata for PZ launcher / Workshop
-├── poster.png                                    # Workshop showcase artwork
-├── icon.png                                      # Mod icon
+├── poster.png                                    # Mod poster artwork (256x256)
+├── icon.png                                      # Mod icon (64x64)
+├── preview.png                                   # Steam Workshop preview image (512x512)
+├── workshop.txt                                  # Workshop descriptor metadata
+├── workshop_description.txt                      # Steam BBCode store page description
+├── LICENSE                                       # MIT License
 ├── 42/                                           # Build 42 root directory
 │   ├── mod.info                                  # B42-specific manifest
 │   ├── poster.png
@@ -110,8 +114,14 @@ pz-auto-sort/
 │               └── Translate/
 │                   └── EN/
 │                       └── IG_UI.json                      # UI display translations (54 categories)
-└── tests/
-    └── run_offline_test.py                       # Automated verification test suite (5,100+ items)
+├── tests/
+│   ├── run_offline_test.py                       # Automated verification test suite (5,100+ items)
+│   ├── test_branding_generator.py                # Branding & preview generation tests
+│   ├── test_readme_no_emojis.py                  # Documentation emoji integrity tests
+│   └── test_stage_workshop.py                    # Workshop staging automation tests
+└── tools/
+    ├── generate_branding.py                      # Programmatic thumbnail & preview generator
+    └── stage_workshop.py                         # Production Workshop packaging & staging tool
 ```
 
 ### Categorization Flow
@@ -190,6 +200,23 @@ Add `ItemSortingImproved` to the `Mods=` line in your server's `.ini` file:
 ```ini
 Mods=ItemSortingImproved
 ```
+
+---
+
+## Steam Workshop Deployment
+
+To stage the mod for Project Zomboid's built-in Workshop uploader:
+
+1. Run the staging tool:
+```bash
+python tools/stage_workshop.py
+```
+This automatically packages the clean mod files into `%USERPROFILE%\Zomboid\Workshop\ItemSortingImproved\`, complete with `preview.png`, `workshop.txt`, and `workshop_description.txt` (while preserving your assigned Workshop ID on updates).
+
+2. Launch Project Zomboid (Build 42).
+3. Select **Workshop** on the main menu.
+4. Select **Item Sorting Improved** and verify the preview image and description.
+5. Click **Publish** (or Update).
 
 ---
 

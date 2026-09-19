@@ -152,11 +152,13 @@ def generate_poster(
 
     # 2. Text layout & sizing
     lines = split_title_lines(title)
-    max_available_width = width - (border_margin * 2) - 24
+    max_available_width = width - (border_margin * 2) - int(width * 0.09)
 
-    # Determine optimal font size so all lines fit comfortably
-    font_size = 26
-    while font_size > 14:
+    # Determine optimal font size so all lines fit comfortably (proportional to canvas size)
+    base_font_size = max(26, int(width * 0.1015))
+    min_font_size = max(14, int(width * 0.055))
+    font_size = base_font_size
+    while font_size > min_font_size:
         fits = True
         test_font = find_system_font(font_size, bold=True)
         for line in lines:
@@ -209,6 +211,30 @@ def generate_poster(
         draw.text((x, curr_y), subtitle.strip().upper(), font=sub_font, fill=text_rgb)
 
     return img
+
+
+def generate_preview(
+    title: str,
+    subtitle: Optional[str] = None,
+    bg_color: str = "#000000",
+    border_color: str = "#FFFFFF",
+    text_color: str = "#FFFFFF",
+    size: int = 512,
+    border_width: int = 4,
+    border_margin: int = 28,
+) -> Image.Image:
+    """Generates a high-contrast Steam Workshop preview thumbnail (typically 512x512)."""
+    return generate_poster(
+        title=title,
+        subtitle=subtitle,
+        bg_color=bg_color,
+        border_color=border_color,
+        text_color=text_color,
+        width=size,
+        height=size,
+        border_width=border_width,
+        border_margin=border_margin,
+    )
 
 
 def generate_icon(
@@ -294,6 +320,12 @@ def main():
     parser.add_argument("--poster-size", type=str, default="256x256", help="Poster dimensions (default: 256x256)")
     parser.add_argument("--icon-size", type=str, default="64x64", help="Icon dimensions (default: 64x64)")
     parser.add_argument(
+        "--preview",
+        action="store_true",
+        help="Also generate high-resolution Steam Workshop preview.png",
+    )
+    parser.add_argument("--preview-size", type=str, default="512x512", help="Steam Workshop preview dimensions (default: 512x512)")
+    parser.add_argument(
         "--out-dirs",
         type=str,
         default=".",
@@ -301,6 +333,7 @@ def main():
     )
     parser.add_argument("--poster-filename", type=str, default="poster.png", help="Poster file name")
     parser.add_argument("--icon-filename", type=str, default="icon.png", help="Icon file name")
+    parser.add_argument("--preview-filename", type=str, default="preview.png", help="Preview file name")
 
     args = parser.parse_args()
 
@@ -319,6 +352,7 @@ def main():
     # Dimensions
     pw, ph = [int(x) for x in args.poster_size.lower().split("x")]
     iw, ih = [int(x) for x in args.icon_size.lower().split("x")]
+    prev_w, prev_h = [int(x) for x in args.preview_size.lower().split("x")]
 
     print(f"[*] Title: '{title}'")
     print(f"[*] Icon Text: '{args.icon_text}'")
@@ -347,6 +381,17 @@ def main():
         border_margin=args.icon_border_margin,
     )
 
+    preview_img = None
+    if args.preview:
+        preview_img = generate_preview(
+            title=title,
+            subtitle=args.subtitle,
+            bg_color=bg_color,
+            border_color=border_color,
+            text_color=text_color,
+            size=prev_w,
+        )
+
     out_dirs = [d.strip() for d in args.out_dirs.split(",") if d.strip()]
     for out_dir in out_dirs:
         os.makedirs(out_dir, exist_ok=True)
@@ -357,6 +402,11 @@ def main():
         icon_img.save(icon_path, format="PNG")
         print(f"[+] Saved: {poster_path} ({pw}x{ph})")
         print(f"[+] Saved: {icon_path} ({iw}x{ih})")
+
+        if preview_img:
+            preview_path = os.path.join(out_dir, args.preview_filename)
+            preview_img.save(preview_path, format="PNG")
+            print(f"[+] Saved: {preview_path} ({prev_w}x{prev_h})")
 
     print("[OK] Branding assets successfully generated!")
 

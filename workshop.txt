@@ -1,0 +1,6 @@
+version=1
+title=Item Sorting Improved
+description=Item Sorting Improved automatically organizes and categorizes all items (vanilla and modded) in Project Zomboid Build 42 into clean, intuitive, alphabetically prefix-aligned sorting categories.
+tags=Build 42;Interface
+visibility=unlisted
+

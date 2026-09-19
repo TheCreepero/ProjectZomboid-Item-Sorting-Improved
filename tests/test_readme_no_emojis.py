@@ -63,9 +63,11 @@ def find_readme_emojis(readme_path: str = README_PATH):
                 })
     return detected
 
+WORKSHOP_DESC_PATH = os.path.join(os.path.dirname(__file__), "..", "workshop_description.txt")
+
 class TestReadmeEmojis(unittest.TestCase):
     def test_readme_contains_no_emojis(self):
-        detected = find_readme_emojis()
+        detected = find_readme_emojis(README_PATH)
         if detected:
             msg_lines = [f"Found {len(detected)} emoji(s) in README.md:"]
             for d in detected:
@@ -73,6 +75,18 @@ class TestReadmeEmojis(unittest.TestCase):
                     f"  Line {d['line']}, Col {d['column']}: {d['codepoint']} ({d['name']}) in '{d['context']}'"
                 )
             self.fail("\n".join(msg_lines))
+
+    def test_workshop_description_contains_no_emojis(self):
+        if os.path.exists(WORKSHOP_DESC_PATH):
+            detected = find_readme_emojis(WORKSHOP_DESC_PATH)
+            if detected:
+                msg_lines = [f"Found {len(detected)} emoji(s) in workshop_description.txt:"]
+                for d in detected:
+                    msg_lines.append(
+                        f"  Line {d['line']}, Col {d['column']}: {d['codepoint']} ({d['name']}) in '{d['context']}'"
+                    )
+                self.fail("\n".join(msg_lines))
+
 
 if __name__ == "__main__":
     unittest.main()
