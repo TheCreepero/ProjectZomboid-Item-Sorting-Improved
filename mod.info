@@ -1,0 +1,8 @@
+name=Item Sorting Improved
+id=ItemSortingImproved
+description=Automatically organizes and categorizes all items (vanilla and modded) into clean, intuitive sorting categories.
+poster=poster.png
+versionMin=42.0
+author=Antigravity
+icon=icon.png
+
